@@ -43,5 +43,41 @@ namespace TaskManagerRestApi.Controllers
             return CreatedAtAction(nameof(GetTaskById), new { id = task.Id }, task);
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateTask(int id, Items updatedTask)
+        {
+            if (id != updatedTask.Id)
+                return BadRequest(new { message = "Task ID mismatch." });
+
+            if (string.IsNullOrWhiteSpace(updatedTask.Title))
+                return BadRequest(new { message = "Title is required." });
+
+            var task = await _context.Tasks.FindAsync(id);
+            if (task == null)
+                return NotFound(new { message = "Task not found." });
+
+            task.Title = updatedTask.Title;
+            task.Description = updatedTask.Description;
+            task.DueDate = updatedTask.DueDate;
+            task.IsComplete = updatedTask.IsComplete;
+
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTask(int id)
+        {
+            var task = await _context.Tasks.FindAsync(id);
+            if (task == null)
+                return NotFound(new { message = "Task not found." });
+
+            _context.Tasks.Remove(task);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
     }
 }
